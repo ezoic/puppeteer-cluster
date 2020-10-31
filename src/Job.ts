@@ -13,18 +13,26 @@ export default class Job<JobData, ReturnData> {
 
     public data?: JobData;
     public taskFunction: TaskFunction<JobData, ReturnData> | undefined;
+    public jobStaleDate: Date | undefined;
     public executeCallbacks: ExecuteCallbacks | undefined;
 
     private lastError: Error | null = null;
     public tries: number = 0;
+    public cancelled: boolean = false;
 
     public constructor(
         data?: JobData,
         taskFunction?: TaskFunction<JobData, ReturnData>,
+        jobExpiry?: number,
         executeCallbacks?: ExecuteCallbacks,
     ) {
         this.data = data;
         this.taskFunction = taskFunction;
+        if (jobExpiry) {
+            let currentTime = new Date;
+            currentTime.setTime(currentTime.getTime() + jobExpiry);
+            this.jobStaleDate = currentTime;
+        }
         this.executeCallbacks = executeCallbacks;
     }
 
@@ -55,6 +63,21 @@ export default class Job<JobData, ReturnData> {
             }
         }
         return undefined;
+    }
+
+    public isStale(): boolean {
+        if (!this.jobStaleDate) {
+            return false;
+        }
+
+        return new Date() > this.jobStaleDate;
+    }
+
+    public cancel(): void {
+        this.cancelled = true;
+        if (this.executeCallbacks) {
+            this.executeCallbacks.reject(new Error(`Job cancelled`));
+        }
     }
 
     public addError(error: Error): void {
