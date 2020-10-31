@@ -206,13 +206,14 @@ Puts a URL or data into the queue. Alternatively (or even additionally) you can 
 
 Be aware that this function only returns a Promise for backward compatibility reasons. This function does not run asynchronously and will immediately return.
 
-#### cluster.execute([data] [, taskFunction])
+#### cluster.execute([data] [, taskFunction, jobExpiry])
 - `data` <any> Data to be queued. This might be your URL (a string) or a more complex object containing data. The data given will be provided to your task function(s). See [examples] for a more complex usage of this argument.
 - `taskFunction` <[function]> Function like the one given to [Cluster.task]. If a function is provided, this function will be called (only for this job) instead of the function provided to [Cluster.task]. The function will be called with an object having the following fields:
   - `page` <[Page]> The page given by puppeteer, which provides methods to interact with a single tab in Chromium.
   - `data` <any> The data of the job you provided as first argument to [Cluster.queue]. This might be `undefined` in case you only specified a function.
   - `worker` <[Object]> An object containing information about the worker executing the current job.
     - `id` <[number]> ID of the worker. Worker IDs start at 0.
+- `jobExpiry` <[number]> Specify a max time, in milliseconds, a job can be in the queue before considering it stale, where an exception is thrown instead of running.
 - returns: <[Promise]>
 
 Works like [Cluster.queue], but this function returns a Promise which will be resolved after the task is executed. That means, that the job is still queued, but the script will wait for it to be finished. In case an error happens during the execution, this function will reject the Promise with the thrown error. There will be no "taskerror" event fired. In addition, tasks queued via execute will ignore "retryLimit" and "retryDelay". For an example see the [Execute example](examples/execute.js).
