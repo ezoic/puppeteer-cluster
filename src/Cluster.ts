@@ -253,6 +253,7 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
             return;
         }
 
+        this.cleanupStaleJobs();
         if (this.workersAvail.length === 0) { // no workers available
             if (this.allowedToStartWorker()) {
                 await this.launchWorker();
@@ -260,7 +261,6 @@ export default class Cluster<JobData = any, ReturnData = any> extends EventEmitt
             }
             return;
         }
-        this.cleanupStaleJobs();
 
         const job = this.jobQueue.shift();
 
